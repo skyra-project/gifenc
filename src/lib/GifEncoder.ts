@@ -9,31 +9,98 @@ const NOP = () => {
 };
 
 const GIF_HEADER = new TextEncoder().encode('GIF89a');
-const NETSCAPE_HEADER = new TextEncoder().encode('NETSCAPE2.0');
+const NETSCAPE_HEADER = new Uint8Array([0x4e, 0x45, 0x54, 0x53, 0x43, 0x41, 0x50, 0x45, 0x32, 0x2e, 0x30]); // NETSCAPE2.0
+
+/**
+ * The disposal method code.
+ *
+ * - `0`: No disposal specified. The decoder is not required to take any action.
+ * - `1`: Do not dispose. The graphic is to be left in place.
+ * - `2`: Restore to background color. The area used by the graphic must be restored to the background color.
+ * - `3`: Restore to previous. The decoder is required to restore the area overwritten by the graphic with what was
+ * there prior to rendering the graphic.
+ * - `4` - `7`: To be defined.
+ */
+export type DisposalCode = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export interface EncoderOptions {
+	/**
+	 * The frame delay in milliseconds.
+	 * @default 0
+	 */
 	delay?: number;
-	frameRate?: number;
-	dispose?: number;
-	repeat?: boolean;
-	transparent?: number;
+
+	/**
+	 * The frames per second, supersedes {@link EncoderOptions.delay} if set.
+	 * @default 0
+	 */
+	framerate?: number;
+
+	/**
+	 * The GIF frame disposal code for the last added frame and any subsequent frames.
+	 *
+	 * Defaults to one of the following values:
+	 * - `0` : If `transparent` is set
+	 * - `2` : Otherwise
+	 */
+	dispose?: DisposalCode;
+
+	/**
+	 * The number of times to repeat the GIF, between `0` and `65536`, with two special cases:
+	 * - `-1`: play once
+	 * - `0`: repeat indefinitely
+	 * @default -1
+	 * @note When set to a value different to `-1`, the GIF will use the Netscape 2.0 extension.
+	 */
+	repeat?: number;
+
+	/**
+	 * The transparent color for the last added frame and any subsequent frames. Since all colors are subject to
+	 * modification in the quantization process, the color in the final palette for each frame closest to the given
+	 * color becomes the transparent color for that frame. May be set to null to indicate no transparent color.
+	 */
+	transparent?: number | null;
+
+	/**
+	 * The quality of color quantization (conversion of images to the maximum 256 colors allowed by the GIF
+	 * specification) between `1` and `30`. Lower values (closer to 1) produce better colors but require significantly
+	 * more resources and processing. `10` is the default value as it produces good color mapping at reasonable speeds.
+	 *
+	 * @note Values greater than 20 do not yield significant improvements in speed.
+	 */
 	quality?: number;
 }
 
 export class GifEncoder {
+	/**
+	 * The GIF image's width, between `1` and `65536`.
+	 */
 	public readonly width: number;
+
+	/**
+	 * The GIF image's height, between `1` and `65536`.
+	 */
 	public readonly height: number;
 
-	// transparent color if given
+	/**
+	 * The transparent color, `null` if no transparent color is given.
+	 */
 	private transparent: number | null = null;
 
-	// transparent index in color table
+	/**
+	 * The transparent index in the color table.
+	 */
 	private transparentIndex = 0;
 
-	// -1 = no repeat, 0 = forever. anything else is repeat count
-	private repeat: -1 | 0 = -1;
+	/**
+	 * Number between `-1` and `65536`, `-1` indicating no repeat (GIF89a specification), otherwise repeating `repeat`
+	 * times with the exception of `0`, which repeats indefinitely.
+	 */
+	private repeat = -1;
 
-	// frame delay (hundredths)
+	/**
+	 * Frame delay in hundredths of a second (1 = 10ms).
+	 */
 	private delay = 0;
 
 	private image: Uint8ClampedArray | null = null; // current frame
@@ -43,7 +110,7 @@ export class GifEncoder {
 	private colorPalette: Float64Array | null = null; // RGB palette
 	private usedEntry: boolean[] = []; // active palette entries
 	private paletteSize = 7; // color table size (bits-1)
-	private disposalMode = -1; // disposal code (-1 = use default)
+	private disposalMode: -1 | DisposalCode = -1; // disposal code (-1 = use default)
 	private firstFrame = true;
 	private sample = 10; // default sample interval for quantizer
 
@@ -53,51 +120,76 @@ export class GifEncoder {
 
 	private out = new ByteBuffer();
 
+	/**
+	 * Constructs the GIF encoder.
+	 * @param width An integer representing the GIF image's width, between `1` and `65536`.
+	 * @param height An integer representing the GIF image's height, between `1` and `65536`.
+	 */
 	public constructor(width: number, height: number) {
 		this.width = ~~width;
 		this.height = ~~height;
 	}
 
-	public createReadStream(rs?: Readable) {
-		if (!rs) {
-			rs = new Readable();
-			rs._read = NOP;
+	/**
+	 * Creates a readable stream and pushes it to the encoder's {@link GifEncoder.readStreams readable streams}.
+	 * @returns The new readable stream.
+	 * @example
+	 * ```javascript
+	 * const encoder = new GifEncoder(320, 240);
+	 *
+	 * // Stream the results as they are available into hello.gif
+	 * encoder.createReadStream().pipe(fs.createWriteStream('hello.gif'));
+	 * ```
+	 */
+	public createReadStream(): Readable;
+	/**
+	 * Uses an existing readable stream and pushes it to the encoder's {@link GifEncoder.readStreams readable streams}.
+	 * @param readable The readable stream to use.
+	 * @returns The given readable stream.
+	 */
+	public createReadStream<T extends Readable>(readable: T): T;
+	public createReadStream(readable?: Readable) {
+		if (!readable) {
+			readable = new Readable();
+			readable._read = NOP;
 		}
 
-		this.readStreams.push(rs);
-		return rs;
+		this.readStreams.push(readable);
+		return readable;
 	}
 
-	public createWriteStream(options?: EncoderOptions) {
+	public createWriteStream(options?: EncoderOptions): Duplex {
 		if (options) {
 			if (options.delay !== undefined) this.setDelay(options.delay);
-			if (options.frameRate !== undefined) this.setFrameRate(options.frameRate);
+			if (options.framerate !== undefined) this.setFramerate(options.framerate);
 			if (options.dispose !== undefined) this.setDispose(options.dispose);
 			if (options.repeat !== undefined) this.setRepeat(options.repeat);
 			if (options.transparent !== undefined) this.setTransparent(options.transparent);
 			if (options.quality !== undefined) this.setQuality(options.quality);
 		}
 
-		const ws = new Duplex({ objectMode: true });
-		ws._read = NOP;
-		this.createReadStream(ws);
+		const duplex = new Duplex({ objectMode: true });
+		duplex._read = NOP;
+		this.createReadStream(duplex);
 
-		ws._write = (data, _enc, next) => {
+		duplex._write = (data, _enc, next) => {
 			if (!this.started) this.start();
 			this.addFrame(data);
 			next();
 		};
 
-		const end = ws.end.bind(ws);
-		ws.end = (...args) => {
-			end(...(args as readonly any[]));
+		const end = duplex.end.bind(duplex);
+		duplex.end = (...args: readonly any[]) => {
+			end(...args);
 			this.finish();
 		};
-		return ws;
+
+		return duplex;
 	}
 
 	public emit() {
 		if (this.readStreams.length === 0) return;
+
 		if (this.out.length) {
 			const data = this.out.toArray();
 			for (const stream of this.readStreams) {
@@ -107,7 +199,8 @@ export class GifEncoder {
 	}
 
 	public end() {
-		if (this.readStreams.length === null) return;
+		if (this.readStreams.length === 0) return;
+
 		this.emit();
 		for (const stream of this.readStreams) {
 			stream.push(null);
@@ -116,52 +209,65 @@ export class GifEncoder {
 		this.readStreams = [];
 	}
 
-	/*
-	  Sets the delay time between each frame, or changes it for subsequent frames
-	  (applies to the next frame added)
-	*/
+	/**
+	 * Sets the delay time between each frame, or changes it for subsequent frames (applies to the next frame added)
+	 */
 	public setDelay(milliseconds: number) {
 		this.delay = Math.round(milliseconds / 10);
 	}
 
-	/*
-	  Sets frame rate in frames per second.
-	*/
-	public setFrameRate(fps: number) {
+	/**
+	 * Sets frame rate in frames per second.
+	 */
+	public setFramerate(fps: number) {
 		this.delay = Math.round(100 / fps);
 	}
 
-	/*
-	  Sets the GIF frame disposal code for the last added frame and any
-	  subsequent frames.
-	  Default is 0 if no transparent color has been set, otherwise 2.
-	*/
-	public setDispose(disposalCode: number) {
+	/**
+	 * Sets the GIF frame disposal code for the last added frame and any subsequent frames.
+	 *
+	 * Defaults to one of the following values:
+	 * - `0` : If `transparent` is set
+	 * - `2` : Otherwise
+	 *
+	 * @see {@link DisposalCode}
+	 */
+	public setDispose(disposalCode: DisposalCode) {
 		if (disposalCode >= 0) this.disposalMode = disposalCode;
 	}
 
 	/**
 	 * Sets the number of times the set of GIF frames should be played.
-	 * -1 = play once
-	 * 0 = repeat indefinitely
-	 * Default is -1
-	 * Must be invoked before the first image is added
+	 * @param repeat The number of times between `-1` and `65536` to repeat the GIF, with two special cases:
+	 * - `-1` (**default**): play once
+	 * - `0`: repeat indefinitely
+	 *
+	 * @note This method has no effect after the first image was added.
 	 */
-	public setRepeat(repeat: boolean) {
-		// TODO: Re-add number
-		this.repeat = repeat ? 0 : -1;
+	public setRepeat(repeat: number) {
+		this.repeat = repeat;
 	}
 
 	/**
-	 * Sets the transparent color for the last added frame and any subsequent
-	 * frames. Since all colors are subject to modification in the quantization
-	 * process, the color in the final palette for each frame closest to the given
-	 * color becomes the transparent color for that frame. May be set to null to
-	 * indicate no transparent color.
+	 * Sets the transparent color for the last added frame and any subsequent frames. Since all colors are subject to
+	 * modification in the quantization process, the color in the final palette for each frame closest to the given
+	 * color becomes the transparent color for that frame. May be set to null to indicate no transparent color.
 	 * @param color The color to be set in transparent pixels.
 	 */
-	public setTransparent(color: number) {
+	public setTransparent(color: number | null) {
 		this.transparent = color;
+	}
+
+	/**
+	 * Sets the quality of color quantization (conversion of images to the maximum 256 colors allowed by the GIF
+	 * specification). Lower values (`minimum` = 1) produce better colors, but slow processing significantly. `10` is
+	 * the default, and produces good color mapping at reasonable speeds. Values greater than 20 do not yield
+	 * significant improvements in speed.
+	 * @param quality A number between `1` and `30`.
+	 */
+	public setQuality(quality: number) {
+		if (quality < 1) quality = 1;
+		this.sample = quality;
 	}
 
 	/**
@@ -170,7 +276,6 @@ export class GifEncoder {
 	 * @param imageData The image data to add into the next frame.
 	 */
 	public addFrame(imageData: CanvasRenderingContext2D | Uint8ClampedArray) {
-		// HTML Canvas 2D Context Passed In
 		if (types.isUint8ClampedArray(imageData)) {
 			this.image = imageData;
 		} else {
@@ -204,18 +309,6 @@ export class GifEncoder {
 	public finish() {
 		this.out.writeByte(0x3b); // gif trailer
 		this.end();
-	}
-
-	/**
-	 * Sets quality of color quantization (conversion of images to the maximum 256 colors allowed by the GIF
-	 * specification). Lower values (`minimum` = 1) produce better colors, but slow processing significantly. 10 is the
-	 * default, and produces good color mapping at reasonable speeds. Values greater than 20 do not yield significant
-	 * improvements in speed.
-	 * @param quality A number between 1 and 30.
-	 */
-	public setQuality(quality: number) {
-		if (quality < 1) quality = 1;
-		this.sample = quality;
 	}
 
 	/**
@@ -303,9 +396,7 @@ export class GifEncoder {
 		this.pixels = new Uint8Array(w * h * 3);
 
 		const data = this.image!;
-		let count = 0;
-
-		for (let i = 0; i < h; i++) {
+		for (let i = 0, count = 0; i < h; i++) {
 			for (let j = 0; j < w; j++) {
 				const b = i * w * 4 + j * 4;
 				this.pixels[count++] = data[b];
@@ -323,13 +414,13 @@ export class GifEncoder {
 		this.out.writeByte(0xf9); // GCE label
 		this.out.writeByte(4); // data block size
 
-		let transparent: 0 | 1;
+		let transparency: 0 | 1;
 		let dispose: number;
 		if (this.transparent === null) {
-			transparent = 0;
+			transparency = 0;
 			dispose = 0; // dispose = no action
 		} else {
-			transparent = 1;
+			transparency = 1;
 			dispose = 2; // force clear if using transparent color
 		}
 
@@ -339,12 +430,12 @@ export class GifEncoder {
 
 		dispose <<= 2;
 
-		// packed fields
+		// Write GCP's packed fields
 		const fields =
 			0b0000_0000 | // XXX0_0000 : Reserved
-			dispose | //     000X_XX00 : Disposal
-			0b0000_0000 | // 0000_00X0 : User Input = 0
-			transparent; //  0000_000X : Transparency flag
+			dispose | //     000X_XX00 : Disposal Method
+			0b0000_0000 | // 0000_00X0 : User Input Flag
+			transparency; // 0000_000X : Transparent Color Flag
 
 		this.out.writeByte(fields);
 
@@ -357,20 +448,20 @@ export class GifEncoder {
 	 * Writes the ID (Image Descriptor).
 	 */
 	private writeImageDescriptor() {
-		this.out.writeByte(0x2c); // image separator
-		this.writeShort(0); // image position x,y = 0,0
-		this.writeShort(0);
-		this.writeShort(this.width); // image size
-		this.writeShort(this.height);
+		this.out.writeByte(0x2c); //     Image Descriptor block identifier
+		this.writeShort(0); //           Image Left Position
+		this.writeShort(0); //           Image Top Position
+		this.writeShort(this.width); //  Image Width
+		this.writeShort(this.height); // Image Height
 
 		// Write the LCT (Local Color Table):
 		const fields = this.firstFrame
 			? 0b0000_0000 // The first frame uses the GCT (Global Color Table)
-			: 0b1000_0000 | // X000_0000            : LCT (Local Color Table) flag = 1
-			  0b0000_0000 | // 0X00_0000            : Interlace = 0
-			  0b0000_0000 | // 00X0_0000            : LCT sort flag = 0
-			  0b0000_0000 | // 000X_X000            : Reserved
-			  this.paletteSize; // 0000_00XX : size of color table
+			: 0b1000_0000 | //     X000_0000 : Local Color Table Flag = 1
+			  0b0000_0000 | //     0X00_0000 : Interlace Flag = 0
+			  0b0000_0000 | //     00X0_0000 : Sort Flag = 0
+			  0b0000_0000 | //     000X_X000 : Reserved
+			  this.paletteSize; // 0000_0XXX : Size of Local Color Table
 
 		this.out.writeByte(fields);
 	}
@@ -401,14 +492,16 @@ export class GifEncoder {
 	 * Writes the Netscape application extension to define repeat count.
 	 */
 	private writeNetscapeExtension() {
-		this.out.writeByte(0x21); // extension introducer
-		this.out.writeByte(0xff); // app extension label
-		this.out.writeByte(11); // block size
-		this.out.writeBytes(NETSCAPE_HEADER); // app id + auth code
-		this.out.writeByte(3); // sub-block size
-		this.out.writeByte(1); // loop sub-block id
-		this.writeShort(this.repeat); // loop count (extra iterations, 0=repeat forever)
-		this.out.writeByte(0); // block terminator
+		// Reference: http://www.vurdalakov.net/misc/gif/netscape-looping-application-extension
+
+		this.out.writeByte(0x21); //             Extension
+		this.out.writeByte(0xff); //             Application Extension
+		this.out.writeByte(0x0b); //             Block Size
+		this.out.writeBytes(NETSCAPE_HEADER); // Application Identifier + Application Authentication Code
+		this.out.writeByte(0x03); //             Sub-block data size
+		this.out.writeByte(0x01); //             Sub-block ID
+		this.writeShort(this.repeat); //         Loop Count (up to 2 bytes, `0` = repeat forever)
+		this.out.writeByte(0); //                Block Terminator
 	}
 
 	/**

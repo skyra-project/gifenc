@@ -27,6 +27,7 @@
 
 -   @skyra/gifenc is a GIF encoding utility library to build your next GIFs.
 -   Supports CommonJS and ES Module.
+-   Heavily based on [`gifencoder`](https://github.com/eugeneware/gifencoder), this module wouldn't have existed without its author.
 
 ## Installation and Usage
 
@@ -94,7 +95,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/kyranet"><img src="https://avatars0.githubusercontent.com/u/24852502?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Antonio Román</b></sub></a><br /><a href="https://github.com/skyra-project/gifenc/commits?author=kyranet" title="Code">💻</a> <a href="https://github.com/skyra-project/gifenc/commits?author=kyranet" title="Tests">⚠️</a> <a href="#ideas-kyranet" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-kyranet" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    <td align="center"><a href="https://github.com/kyranet"><img src="https://avatars0.githubusercontent.com/u/24852502?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Antonio Román</b></sub></a><br /><a href="https://github.com/skyra-project/gifenc/commits?author=kyranet" title="Code">💻</a> <a href="#ideas-kyranet" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-kyranet" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
   </tr>
 </table>
 

@@ -158,6 +158,20 @@ export class GifEncoder {
 		return readable;
 	}
 
+	/**
+	 * Creates a write stream.
+	 * @param options The options for the write stream.
+	 * @returns A {@link Duplex}.
+	 * @example
+	 * ```typescript
+	 * const { GifEncoder } = require('@skyra/gifenc');
+	 * const encoder = new GifEncoder(400, 200);
+	 *
+	 * pngStreamGenerator() // A user-defined `Readable`.
+	 * 	.pipe(encoder.createWriteStream({ repeat: -1, delay: 500, quality: 10 }))
+	 * 	.pipe(fs.createWriteStream('runningKitten.gif'));
+	 * ```
+	 */
 	public createWriteStream(options?: EncoderOptions): Duplex {
 		if (options) {
 			if (options.delay !== undefined) this.setDelay(options.delay);
@@ -187,40 +201,22 @@ export class GifEncoder {
 		return duplex;
 	}
 
-	public emit() {
-		if (this.readStreams.length === 0) return;
-
-		if (this.out.length) {
-			const data = this.out.toArray();
-			for (const stream of this.readStreams) {
-				stream.push(data);
-			}
-		}
-	}
-
-	public end() {
-		if (this.readStreams.length === 0) return;
-
-		this.emit();
-		for (const stream of this.readStreams) {
-			stream.push(null);
-		}
-
-		this.readStreams = [];
-	}
-
 	/**
-	 * Sets the delay time between each frame, or changes it for subsequent frames (applies to the next frame added)
+	 * Sets the delay time between each frame, or changes it for subsequent frames (applies to the next frame added).
+	 * @param delay The delay between frames, in milliseconds. Must be a number between `655360` and `10`.
 	 */
-	public setDelay(milliseconds: number) {
-		this.delay = Math.round(milliseconds / 10);
+	public setDelay(delay: number): this {
+		this.delay = Math.round(delay / 10);
+		return this;
 	}
 
 	/**
 	 * Sets frame rate in frames per second.
+	 * @param fps The amount of frames per second, maximum is `100` frames per second.
 	 */
-	public setFramerate(fps: number) {
+	public setFramerate(fps: number): this {
 		this.delay = Math.round(100 / fps);
+		return this;
 	}
 
 	/**
@@ -230,10 +226,12 @@ export class GifEncoder {
 	 * - `0` : If `transparent` is set
 	 * - `2` : Otherwise
 	 *
+	 * @param disposalCode The disposal code.
 	 * @see {@link DisposalCode}
 	 */
-	public setDispose(disposalCode: DisposalCode) {
+	public setDispose(disposalCode: DisposalCode): this {
 		if (disposalCode >= 0) this.disposalMode = disposalCode;
+		return this;
 	}
 
 	/**
@@ -244,8 +242,9 @@ export class GifEncoder {
 	 *
 	 * @note This method has no effect after the first image was added.
 	 */
-	public setRepeat(repeat: number) {
+	public setRepeat(repeat: number): this {
 		this.repeat = repeat;
+		return this;
 	}
 
 	/**
@@ -254,8 +253,9 @@ export class GifEncoder {
 	 * color becomes the transparent color for that frame. May be set to null to indicate no transparent color.
 	 * @param color The color to be set in transparent pixels.
 	 */
-	public setTransparent(color: number | null) {
+	public setTransparent(color: number | null): this {
 		this.transparent = color;
+		return this;
 	}
 
 	/**
@@ -265,9 +265,10 @@ export class GifEncoder {
 	 * significant improvements in speed.
 	 * @param quality A number between `1` and `30`.
 	 */
-	public setQuality(quality: number) {
+	public setQuality(quality: number): this {
 		if (quality < 1) quality = 1;
 		this.sample = quality;
+		return this;
 	}
 
 	/**
@@ -320,23 +321,48 @@ export class GifEncoder {
 		this.emit();
 	}
 
+	private end() {
+		if (this.readStreams.length === 0) return;
+
+		this.emit();
+		for (const stream of this.readStreams) {
+			stream.push(null);
+		}
+
+		this.readStreams = [];
+	}
+
+	private emit() {
+		if (this.readStreams.length === 0) return;
+
+		if (this.out.length) {
+			const data = this.out.toArray();
+			for (const stream of this.readStreams) {
+				stream.push(data);
+			}
+		}
+	}
+
 	/**
 	 * Analyzes current frame colors and creates a color map.
 	 */
 	private analyzePixels() {
 		const pixels = this.pixels!;
-		const len = pixels.length;
-		const nPix = len / 3;
+		const pixelByteCount = pixels.length;
+		const pixelCount = pixelByteCount / 3;
 
-		this.indexedPixels = new Uint8Array(nPix);
+		this.indexedPixels = new Uint8Array(pixelCount);
 
-		const quantifier = new NeuQuant(this.pixels!, this.sample);
+		const quantifier = new NeuQuant(pixels, this.sample);
 		this.colorPalette = quantifier.getColorMap();
 
-		// map image pixels to new palette
+		// Map image pixels to new palette:
 		let k = 0;
-		for (let j = 0; j < nPix; j++) {
-			const index = quantifier.lookupRGB(pixels[k++] & 0xff, pixels[k++] & 0xff, pixels[k++] & 0xff);
+		for (let j = 0; j < pixelCount; j++) {
+			const r = pixels[k++] & 0xff;
+			const g = pixels[k++] & 0xff;
+			const b = pixels[k++] & 0xff;
+			const index = quantifier.lookupRGB(r, g, b);
 			this.usedEntry[index] = true;
 			this.indexedPixels[j] = index;
 		}
@@ -345,15 +371,16 @@ export class GifEncoder {
 		this.colorDepth = 8;
 		this.paletteSize = 7;
 
-		// get closest match to transparent color if specified
-		if (this.transparent !== null) {
-			this.transparentIndex = this.findClosest(this.transparent);
+		// Get closest match to transparent color if specified:
+		if (this.transparent === null) return;
 
-			// ensure that pixels with full transparency in the RGBA image are using the selected transparent color index in the indexed image.
-			for (let pixelIndex = 0; pixelIndex < nPix; pixelIndex++) {
-				if (this.image![pixelIndex * 4 + 3] === 0) {
-					this.indexedPixels[pixelIndex] = this.transparentIndex;
-				}
+		this.transparentIndex = this.findClosest(this.transparent);
+
+		// Ensure that pixels with full transparency in the RGBA image are using
+		// the selected transparent color index in the indexed image.
+		for (let pixelIndex = 0; pixelIndex < pixelCount; pixelIndex++) {
+			if (this.image![pixelIndex * 4 + 3] === 0) {
+				this.indexedPixels[pixelIndex] = this.transparentIndex;
 			}
 		}
 	}
@@ -439,7 +466,7 @@ export class GifEncoder {
 
 		this.out.writeByte(fields);
 
-		this.writeShort(this.delay); // delay x 1/100 sec
+		this.writeShort(this.delay); // delay x 1 / 100 sec
 		this.out.writeByte(this.transparentIndex); // transparent color index
 		this.out.writeByte(0); // block terminator
 	}

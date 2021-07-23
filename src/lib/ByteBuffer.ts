@@ -10,19 +10,35 @@ export class ByteBuffer {
 		this.data = new Uint8Array(size);
 	}
 
+	/**
+	 * Gets the written data.
+	 */
 	public get length(): number {
 		return this.written;
 	}
 
-	public clear(): void {
+	/**
+	 * Resets the data.
+	 * @note This does not de-allocate the data, instead, it sets the {@link ByteBuffer.written position} to zero.
+	 */
+	public reset(): void {
 		this.written = 0;
 	}
 
+	/**
+	 * Writes a single byte into the buffer.
+	 * @param byte The byte to write, between `0x00` and `0xFF`.
+	 */
 	public writeByte(byte: number) {
 		this.ensureByte();
 		this.data[this.written++] = byte;
 	}
 
+	/**
+	 * Writes the `byte` value `times` times.
+	 * @param byte The byte to write `times` times.
+	 * @param times The amount of times to write the `byte`.
+	 */
 	public writeTimes(byte: number, times: number): void {
 		this.ensureBytes(times);
 
@@ -31,6 +47,10 @@ export class ByteBuffer {
 		}
 	}
 
+	/**
+	 * Writes `bytes` into the data.
+	 * @param bytes The bytes to write.
+	 */
 	public writeBytes(bytes: ArrayLike<number>) {
 		this.ensureBytes(bytes.length);
 
@@ -41,10 +61,20 @@ export class ByteBuffer {
 		}
 	}
 
+	/**
+	 * Gets a sub-array of what was written so far.
+	 * @returns The written section of the data.
+	 */
 	public toArray(): Uint8Array {
 		return this.data.subarray(0, this.written);
 	}
 
+	/**
+	 * Fills the data with the `byte` value given a range.
+	 * @param byte The value to write.
+	 * @param start The start index, defaults to `0`.
+	 * @param end The end index, defaults to {@link Uint8Array.length `this.data.length`}.
+	 */
 	public fill(byte: number, start?: number, end?: number) {
 		this.data.fill(byte, start, end);
 	}

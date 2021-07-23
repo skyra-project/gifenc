@@ -18,8 +18,8 @@
 		"dist"
 	],
 	"scripts": {
-		"lint": "eslint src tests --ext ts --fix",
-		"format": "prettier --write {src,tests}/**/*.ts",
+		"lint": "eslint src --ext ts --fix",
+		"format": "prettier --write {src}/**/*.ts",
 		"docs": "typedoc",
 		"update": "yarn upgrade-interactive --latest",
 		"build": "rollup -c rollup.config.ts",

@@ -140,33 +140,35 @@ export class GifEncoder {
 		if (disposalCode >= 0) this.disposalMode = disposalCode;
 	}
 
-	/*
-	  Sets the number of times the set of GIF frames should be played.
-	  -1 = play once
-	  0 = repeat indefinitely
-	  Default is -1
-	  Must be invoked before the first image is added
-	*/
+	/**
+	 * Sets the number of times the set of GIF frames should be played.
+	 * -1 = play once
+	 * 0 = repeat indefinitely
+	 * Default is -1
+	 * Must be invoked before the first image is added
+	 */
 	public setRepeat(repeat: boolean) {
+		// TODO: Re-add number
 		this.repeat = repeat ? 0 : -1;
 	}
 
-	/*
-	  Sets the transparent color for the last added frame and any subsequent
-	  frames. Since all colors are subject to modification in the quantization
-	  process, the color in the final palette for each frame closest to the given
-	  color becomes the transparent color for that frame. May be set to null to
-	  indicate no transparent color.
-	*/
+	/**
+	 * Sets the transparent color for the last added frame and any subsequent
+	 * frames. Since all colors are subject to modification in the quantization
+	 * process, the color in the final palette for each frame closest to the given
+	 * color becomes the transparent color for that frame. May be set to null to
+	 * indicate no transparent color.
+	 * @param color The color to be set in transparent pixels.
+	 */
 	public setTransparent(color: number) {
 		this.transparent = color;
 	}
 
-	/*
-	  Adds next GIF frame. The frame is not written immediately, but is
-	  actually deferred until the next frame is received so that timing
-	  data can be inserted.  Invoking finish() flushes all frames.
-	*/
+	/**
+	 * Adds the next GIF frame. The frame is not written immediately, but is actually deferred until the next frame is
+	 * received so that timing data can be inserted. Calling {@link GifEncoder.finish} will flush all frames.
+	 * @param imageData The image data to add into the next frame.
+	 */
 	public addFrame(imageData: CanvasRenderingContext2D | Uint8ClampedArray) {
 		// HTML Canvas 2D Context Passed In
 		if (types.isUint8ClampedArray(imageData)) {
@@ -188,7 +190,7 @@ export class GifEncoder {
 		}
 
 		this.writeGraphicControlExtension(); // write graphic control extension
-		this.writeImageDesc(); // image descriptor
+		this.writeImageDescriptor(); // image descriptor
 		if (!this.firstFrame) this.writePalette(); // local color table
 		this.writePixels(); // encode and write pixel data
 
@@ -196,39 +198,38 @@ export class GifEncoder {
 		this.emit();
 	}
 
-	/*
-	  Adds final trailer to the GIF stream, if you don't call the finish method
-	  the GIF stream will not be valid.
-	*/
+	/**
+	 * Adds final trailer to the GIF stream, if you don't call the finish method the GIF stream will not be valid.
+	 */
 	public finish() {
 		this.out.writeByte(0x3b); // gif trailer
 		this.end();
 	}
 
-	/*
-	  Sets quality of color quantization (conversion of images to the maximum 256
-	  colors allowed by the GIF specification). Lower values (minimum = 1)
-	  produce better colors, but slow processing significantly. 10 is the
-	  default, and produces good color mapping at reasonable speeds. Values
-	  greater than 20 do not yield significant improvements in speed.
-	*/
+	/**
+	 * Sets quality of color quantization (conversion of images to the maximum 256 colors allowed by the GIF
+	 * specification). Lower values (`minimum` = 1) produce better colors, but slow processing significantly. 10 is the
+	 * default, and produces good color mapping at reasonable speeds. Values greater than 20 do not yield significant
+	 * improvements in speed.
+	 * @param quality A number between 1 and 30.
+	 */
 	public setQuality(quality: number) {
 		if (quality < 1) quality = 1;
 		this.sample = quality;
 	}
 
-	/*
-	  Writes GIF file header
-	*/
+	/**
+	 * Writes the GIF file header
+	 */
 	public start() {
 		this.out.writeBytes(GIF_HEADER);
 		this.started = true;
 		this.emit();
 	}
 
-	/*
-	  Analyzes current frame colors and creates color map.
-	*/
+	/**
+	 * Analyzes current frame colors and creates a color map.
+	 */
 	private analyzePixels() {
 		const pixels = this.pixels!;
 		const len = pixels.length;
@@ -314,9 +315,9 @@ export class GifEncoder {
 		}
 	}
 
-	/*
-	  Writes Graphic Control Extension
-	*/
+	/**
+	 * Writes the GCE (Graphic Control Extension).
+	 */
 	private writeGraphicControlExtension() {
 		this.out.writeByte(0x21); // extension introducer
 		this.out.writeByte(0xf9); // GCE label
@@ -340,10 +341,11 @@ export class GifEncoder {
 
 		// packed fields
 		const fields =
-			0 | // 1:3 reserved
-			dispose | // 4:6 disposal
-			0 | // 7 user input - 0 = none
-			transparent; // 8 transparency flag
+			0b0000_0000 | // XXX0_0000 : Reserved
+			dispose | //     000X_XX00 : Disposal
+			0b0000_0000 | // 0000_00X0 : User Input = 0
+			transparent; //  0000_000X : Transparency flag
+
 		this.out.writeByte(fields);
 
 		this.writeShort(this.delay); // delay x 1/100 sec
@@ -351,49 +353,47 @@ export class GifEncoder {
 		this.out.writeByte(0); // block terminator
 	}
 
-	/*
-	  Writes Image Descriptor
-	*/
-	private writeImageDesc() {
+	/**
+	 * Writes the ID (Image Descriptor).
+	 */
+	private writeImageDescriptor() {
 		this.out.writeByte(0x2c); // image separator
 		this.writeShort(0); // image position x,y = 0,0
 		this.writeShort(0);
 		this.writeShort(this.width); // image size
 		this.writeShort(this.height);
 
-		// packed fields
-		if (this.firstFrame) {
-			// no LCT - GCT is used for first (or only) frame
-			this.out.writeByte(0);
-		} else {
-			// specify normal LCT
-			const fields =
-				0x80 | // 1 local color table 1=yes
-				0 | // 2 interlace - 0=no
-				0 | // 3 sorted - 0=no
-				0 | // 4-5 reserved
-				this.paletteSize; // 6-8 size of color table
-			this.out.writeByte(fields);
-		}
+		// Write the LCT (Local Color Table):
+		const fields = this.firstFrame
+			? 0b0000_0000 // The first frame uses the GCT (Global Color Table)
+			: 0b1000_0000 | // X000_0000            : LCT (Local Color Table) flag = 1
+			  0b0000_0000 | // 0X00_0000            : Interlace = 0
+			  0b0000_0000 | // 00X0_0000            : LCT sort flag = 0
+			  0b0000_0000 | // 000X_X000            : Reserved
+			  this.paletteSize; // 0000_00XX : size of color table
+
+		this.out.writeByte(fields);
 	}
 
-	/*
-	  Writes Logical Screen Descriptor
-	*/
+	/**
+	 * Writes the LSD (Logical Screen Descriptor)
+	 */
 	private writeLogicalScreenDescriptor() {
 		// logical screen size
 		this.writeShort(this.width);
 		this.writeShort(this.height);
 
-		// packed fields
+		// Write the GCT (Global Color Table):
 		const fields =
-			0x80 | // 1 : global color table flag = 1 (gct used)
-			0x70 | // 2-4 : color resolution = 7
-			0x00 | // 5 : gct sort flag = 0
-			this.paletteSize; // 6-8 : gct size
+			0b1000_0000 | // X000_0000     : GCT (Global Color Table) flag = 1
+			0b0111_0000 | // 0XXX_0000     : Color Resolution = 7
+			0b0000_0000 | // 0000_X000     : GCT sort flag = 0
+			0b0000_0000 | // 0000_0X00     : Reserved
+			this.paletteSize; // 0000_00XX : GCT (Global Color Table) size
+
 		this.out.writeByte(fields);
 
-		this.out.writeByte(0); // background color index
+		this.out.writeByte(0x000000); // background color index
 		this.out.writeByte(0); // pixel aspect ratio - assume 1:1
 	}
 
@@ -411,9 +411,9 @@ export class GifEncoder {
 		this.out.writeByte(0); // block terminator
 	}
 
-	/*
-	  Writes color table
-	*/
+	/**
+	 * Writes the color table palette.
+	 */
 	private writePalette() {
 		this.out.writeBytes(this.colorPalette!);
 		this.out.writeTimes(0, 3 * 256 - this.colorPalette!.length);
@@ -424,9 +424,9 @@ export class GifEncoder {
 		this.out.writeByte((pValue >> 8) & 0xff);
 	}
 
-	/*
-	  Encodes and writes pixel data
-	*/
+	/**
+	 * Encodes and writes pixel data into {@link GifEncoder.out}.
+	 */
 	private writePixels() {
 		const enc = new LZWEncoder(this.width, this.height, this.indexedPixels!, this.colorDepth!);
 		enc.encode(this.out);

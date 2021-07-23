@@ -106,15 +106,16 @@ export class LZWEncoder {
 		this.resetHashRange(hashSizeRegion); // clear hash table
 		this.output(this.clearCode, output);
 
-		let i: number;
 		let c: number;
 		outerLoop: while ((c = this.nextPixel()) !== EOF) {
 			hash = (c << BITS) + code;
-			i = (c << hashShift) ^ code; // xor hashing
+			let i = (c << hashShift) ^ code; // xor hashing
 			if (this.hashes[i] === hash) {
 				code = this.codes[i];
 				continue;
-			} else if (this.hashes[i] >= 0) {
+			}
+
+			if (this.hashes[i] >= 0) {
 				// non-empty slot
 				let dispose = hashSizeRegion - i; // secondary hash (after G. Knott)
 				if (i === 0) dispose = 1;
@@ -126,6 +127,7 @@ export class LZWEncoder {
 					}
 				} while (this.hashes[i] >= 0);
 			}
+
 			this.output(code, output);
 			code = c;
 			if (this.firstUnusedEntry < 1 << BITS) {

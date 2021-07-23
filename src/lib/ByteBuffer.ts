@@ -2,7 +2,11 @@ export class ByteBuffer {
 	private written = 0;
 	private data: Uint8Array;
 
-	public constructor(size = 16) {
+	/**
+	 * Constructs the instance.
+	 * @param size The amount of bytes to reserve, defaults to 8KB.
+	 */
+	public constructor(size = 8192) {
 		this.data = new Uint8Array(size);
 	}
 

@@ -12,6 +12,11 @@ const GIF_HEADER = new TextEncoder().encode('GIF89a');
 const NETSCAPE_HEADER = new Uint8Array([0x4e, 0x45, 0x54, 0x53, 0x43, 0x41, 0x50, 0x45, 0x32, 0x2e, 0x30]); // NETSCAPE2.0
 
 /**
+ * The color table size (bits - 1).
+ */
+const PALETTE_SIZE = 7;
+
+/**
  * The disposal method code.
  *
  * - `0`: No disposal specified. The decoder is not required to take any action.
@@ -103,22 +108,65 @@ export class GifEncoder {
 	 */
 	private delay = 0;
 
-	private image: Uint8ClampedArray | null = null; // current frame
-	private pixels: Uint8Array | null = null; // BGR byte array from frame
-	private indexedPixels: Uint8Array | null = null; // converted frame indexed to palette
-	private colorDepth: number | null = null; // number of bit planes
-	private colorPalette: Float64Array | null = null; // RGB palette
-	private usedEntry: boolean[] = []; // active palette entries
-	private paletteSize = 7; // color table size (bits-1)
-	private disposalMode: -1 | DisposalCode = -1; // disposal code (-1 = use default)
+	/**
+	 * The current frame.
+	 */
+	private image: Uint8ClampedArray | null = null;
+
+	/**
+	 * The BGR byte array from the current frame.
+	 */
+	private pixels: Uint8Array | null = null;
+
+	/**
+	 * The converted frame indexed to the palette.
+	 */
+	private indexedPixels: Uint8Array | null = null;
+
+	/**
+	 * The number of bit planes.
+	 */
+	private colorDepth: number | null = null;
+
+	/**
+	 * The RGB palette.
+	 */
+	private colorPalette: Float64Array | null = null;
+
+	/**
+	 * The active palette entries.
+	 */
+	private usedEntry: boolean[] = [];
+
+	/**
+	 * The disposal code (`-1` = determine defaults).
+	 */
+	private disposalMode: -1 | DisposalCode = -1;
+
+	/**
+	 * Whether or not this is the first frame.
+	 */
 	private firstFrame = true;
-	private sample = 10; // default sample interval for quantizer
 
-	private started = false; // started encoding
+	/**
+	 * The sample interval for the quantifier.
+	 */
+	private sample = 10;
 
-	private readStreams: Readable[] = [];
+	/**
+	 * Whether or not we started encoding.
+	 */
+	private started = false;
 
-	private out = new ByteBuffer();
+	/**
+	 * The readable streams.
+	 */
+	private readableStreams: Readable[] = [];
+
+	/**
+	 * The output buffer.
+	 */
+	private byteBuffer = new ByteBuffer();
 
 	/**
 	 * Constructs the GIF encoder.
@@ -131,7 +179,7 @@ export class GifEncoder {
 	}
 
 	/**
-	 * Creates a readable stream and pushes it to the encoder's {@link GifEncoder.readStreams readable streams}.
+	 * Creates a readable stream and pushes it to the encoder's {@link GifEncoder.readableStreams readable streams}.
 	 * @returns The new readable stream.
 	 * @example
 	 * ```javascript
@@ -143,7 +191,7 @@ export class GifEncoder {
 	 */
 	public createReadStream(): Readable;
 	/**
-	 * Uses an existing readable stream and pushes it to the encoder's {@link GifEncoder.readStreams readable streams}.
+	 * Uses an existing readable stream and pushes it to the encoder's {@link GifEncoder.readableStreams readable streams}.
 	 * @param readable The readable stream to use.
 	 * @returns The given readable stream.
 	 */
@@ -154,7 +202,7 @@ export class GifEncoder {
 			readable._read = NOP;
 		}
 
-		this.readStreams.push(readable);
+		this.readableStreams.push(readable);
 		return readable;
 	}
 
@@ -308,7 +356,7 @@ export class GifEncoder {
 	 * Adds final trailer to the GIF stream, if you don't call the finish method the GIF stream will not be valid.
 	 */
 	public finish() {
-		this.out.writeByte(0x3b); // gif trailer
+		this.byteBuffer.writeByte(0x3b); // gif trailer
 		this.end();
 	}
 
@@ -316,28 +364,28 @@ export class GifEncoder {
 	 * Writes the GIF file header
 	 */
 	public start() {
-		this.out.writeBytes(GIF_HEADER);
+		this.byteBuffer.writeBytes(GIF_HEADER);
 		this.started = true;
 		this.emit();
 	}
 
 	private end() {
-		if (this.readStreams.length === 0) return;
+		if (this.readableStreams.length === 0) return;
 
 		this.emit();
-		for (const stream of this.readStreams) {
+		for (const stream of this.readableStreams) {
 			stream.push(null);
 		}
 
-		this.readStreams = [];
+		this.readableStreams = [];
 	}
 
 	private emit() {
-		if (this.readStreams.length === 0) return;
+		if (this.readableStreams.length === 0) return;
 
-		if (this.out.length) {
-			const data = this.out.toArray();
-			for (const stream of this.readStreams) {
+		if (this.byteBuffer.length) {
+			const data = this.byteBuffer.toArray();
+			for (const stream of this.readableStreams) {
 				stream.push(data);
 			}
 		}
@@ -369,7 +417,6 @@ export class GifEncoder {
 
 		this.pixels = null;
 		this.colorDepth = 8;
-		this.paletteSize = 7;
 
 		// Get closest match to transparent color if specified:
 		if (this.transparent === null) return;
@@ -437,9 +484,9 @@ export class GifEncoder {
 	 * Writes the GCE (Graphic Control Extension).
 	 */
 	private writeGraphicControlExtension() {
-		this.out.writeByte(0x21); // extension introducer
-		this.out.writeByte(0xf9); // GCE label
-		this.out.writeByte(4); // data block size
+		this.byteBuffer.writeByte(0x21); // extension introducer
+		this.byteBuffer.writeByte(0xf9); // GCE label
+		this.byteBuffer.writeByte(4); // data block size
 
 		let transparency: 0 | 1;
 		let dispose: number;
@@ -464,18 +511,18 @@ export class GifEncoder {
 			0b0000_0000 | // 0000_00X0 : User Input Flag
 			transparency; // 0000_000X : Transparent Color Flag
 
-		this.out.writeByte(fields);
+		this.byteBuffer.writeByte(fields);
 
 		this.writeShort(this.delay); // delay x 1 / 100 sec
-		this.out.writeByte(this.transparentIndex); // transparent color index
-		this.out.writeByte(0); // block terminator
+		this.byteBuffer.writeByte(this.transparentIndex); // transparent color index
+		this.byteBuffer.writeByte(0); // block terminator
 	}
 
 	/**
 	 * Writes the ID (Image Descriptor).
 	 */
 	private writeImageDescriptor() {
-		this.out.writeByte(0x2c); //     Image Descriptor block identifier
+		this.byteBuffer.writeByte(0x2c); //     Image Descriptor block identifier
 		this.writeShort(0); //           Image Left Position
 		this.writeShort(0); //           Image Top Position
 		this.writeShort(this.width); //  Image Width
@@ -488,9 +535,9 @@ export class GifEncoder {
 			  0b0000_0000 | //     0X00_0000 : Interlace Flag = 0
 			  0b0000_0000 | //     00X0_0000 : Sort Flag = 0
 			  0b0000_0000 | //     000X_X000 : Reserved
-			  this.paletteSize; // 0000_0XXX : Size of Local Color Table
+			  PALETTE_SIZE; // 0000_0XXX : Size of Local Color Table
 
-		this.out.writeByte(fields);
+		this.byteBuffer.writeByte(fields);
 	}
 
 	/**
@@ -507,12 +554,12 @@ export class GifEncoder {
 			0b0111_0000 | // 0XXX_0000     : Color Resolution = 7
 			0b0000_0000 | // 0000_X000     : GCT sort flag = 0
 			0b0000_0000 | // 0000_0X00     : Reserved
-			this.paletteSize; // 0000_00XX : GCT (Global Color Table) size
+			PALETTE_SIZE; // 0000_00XX : GCT (Global Color Table) size
 
-		this.out.writeByte(fields);
+		this.byteBuffer.writeByte(fields);
 
-		this.out.writeByte(0x000000); // background color index
-		this.out.writeByte(0); // pixel aspect ratio - assume 1:1
+		this.byteBuffer.writeByte(0x000000); // background color index
+		this.byteBuffer.writeByte(0); // pixel aspect ratio - assume 1:1
 	}
 
 	/**
@@ -521,34 +568,34 @@ export class GifEncoder {
 	private writeNetscapeExtension() {
 		// Reference: http://www.vurdalakov.net/misc/gif/netscape-looping-application-extension
 
-		this.out.writeByte(0x21); //             Extension
-		this.out.writeByte(0xff); //             Application Extension
-		this.out.writeByte(0x0b); //             Block Size
-		this.out.writeBytes(NETSCAPE_HEADER); // Application Identifier + Application Authentication Code
-		this.out.writeByte(0x03); //             Sub-block data size
-		this.out.writeByte(0x01); //             Sub-block ID
+		this.byteBuffer.writeByte(0x21); //             Extension
+		this.byteBuffer.writeByte(0xff); //             Application Extension
+		this.byteBuffer.writeByte(0x0b); //             Block Size
+		this.byteBuffer.writeBytes(NETSCAPE_HEADER); // Application Identifier + Application Authentication Code
+		this.byteBuffer.writeByte(0x03); //             Sub-block data size
+		this.byteBuffer.writeByte(0x01); //             Sub-block ID
 		this.writeShort(this.repeat); //         Loop Count (up to 2 bytes, `0` = repeat forever)
-		this.out.writeByte(0); //                Block Terminator
+		this.byteBuffer.writeByte(0); //                Block Terminator
 	}
 
 	/**
 	 * Writes the color table palette.
 	 */
 	private writePalette() {
-		this.out.writeBytes(this.colorPalette!);
-		this.out.writeTimes(0, 3 * 256 - this.colorPalette!.length);
+		this.byteBuffer.writeBytes(this.colorPalette!);
+		this.byteBuffer.writeTimes(0, 3 * 256 - this.colorPalette!.length);
 	}
 
 	private writeShort(pValue: number) {
-		this.out.writeByte(pValue & 0xff);
-		this.out.writeByte((pValue >> 8) & 0xff);
+		this.byteBuffer.writeByte(pValue & 0xff);
+		this.byteBuffer.writeByte((pValue >> 8) & 0xff);
 	}
 
 	/**
-	 * Encodes and writes pixel data into {@link GifEncoder.out}.
+	 * Encodes and writes pixel data into {@link GifEncoder.byteBuffer}.
 	 */
 	private writePixels() {
 		const enc = new LZWEncoder(this.width, this.height, this.indexedPixels!, this.colorDepth!);
-		enc.encode(this.out);
+		enc.encode(this.byteBuffer);
 	}
 }

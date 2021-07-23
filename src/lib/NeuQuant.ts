@@ -24,38 +24,40 @@
  */
 
 /* eslint-disable prefer-destructuring, no-negated-condition */
-const learningCycles = 100; // number of learning cycles
-const maximumColorsSize = 256; // number of colors used
+
+const learningCycles = 100; // Number of learning cycles.
+const maximumColorsSize = 256; // Number of colors used.
 const maximumColorsPosition = maximumColorsSize - 1;
 
 // defs for freq and bias
-const networkBiasShift = 4; // bias for colour values
-const integerBiasShift = 16; // bias for fractions
+const networkBiasShift = 4; // Bias for color values.
+const integerBiasShift = 16; // Bias for fractions.
 const integerBias = 1 << integerBiasShift;
 const gammaShift = 10;
 const betaShift = 10;
-const beta = integerBias >> betaShift; /* beta = 1/1024 */
+const beta = integerBias >> betaShift; // `beta` = 1 / 1024
 const betaGamma = integerBias << (gammaShift - betaShift);
 
-// defs for decreasing radius factor
-const maximumRadius = maximumColorsSize >> 3; // for 256 cols, radius starts
-const initialRadiusBiasShift = 6; // at 32.0 biased by 6 bits
+// Defaults for decreasing radius factor:
+// -> For 256 colors, radius starts at 32.0 biased by 6 bits and decreases by a factor of 1 / 30 each cycle.
+const maximumRadius = maximumColorsSize >> 3;
+const initialRadiusBiasShift = 6;
 const initialRadiusBias = 1 << initialRadiusBiasShift;
-const initialRadius = maximumRadius * initialRadiusBias; // and decreases by a
-const initialRadiusDecrement = 30; // factor of 1/30 each cycle
+const initialRadius = maximumRadius * initialRadiusBias;
+const initialRadiusDecrement = 30;
 
-// defs for decreasing alpha factor
-const alphaBiasShift = 10; // alpha starts at 1.0
+// Defaults for decreasing alpha factor:
+// -> Alpha starts at 1.0
+const alphaBiasShift = 10;
 const initialAlpha = 1 << alphaBiasShift;
 
-/* radbias and alpharadbias used for radpower calculation */
+// Constants used for radius power calculation:
 const radiusBiasShift = 8;
 const radiusBias = 1 << radiusBiasShift;
 const alphaRadiusBiasShift = alphaBiasShift + radiusBiasShift;
 const alphaRadiusBias = 1 << alphaRadiusBiasShift;
 
-// four primes near 500 - assume no image has a length so large that it is
-// divisible by all four primes
+// Four primes near 500 - assume no image has a length so large that it is divisible by all four primes:
 const prime1 = 499;
 const prime2 = 491;
 const prime3 = 487;
@@ -63,27 +65,41 @@ const prime4 = 503;
 const minimumPictureBytes = 3 * prime4;
 
 export class NeuQuant {
-	private pixels;
-	private sampleFactorial;
+	/**
+	 * Array of pixels in RGB format, as such that it's decoded as `[r, g, b, r, g, b, r, g, b, ...]`.
+	 */
+	private pixels: Uint8Array;
 
-	private networks!: Float64Array[]; // int[netsize][4]
-	private networkIndex!: Int32Array; // for network lookup - really 256
+	/**
+	 * Sampling factor from `1` to `30`, where lower is better quality.
+	 */
+	private sampleFactorial: number;
+
+	/**
+	 * The neural networks, composed by {@link maximumColorsSize} {@link Float64Array float arrays} of size 4.
+	 */
+	private networks: Float64Array[];
+
+	/**
+	 * Network lookup indexes, composed by 256 indexes.
+	 */
+	private networkIndexes: Int32Array;
 
 	// bias and freq arrays for learning
-	private biases!: Int32Array;
-	private frequencies!: Int32Array;
-	private radiusPower!: Int32Array;
+	private biases: Int32Array;
+	private frequencies: Int32Array;
+	private radiusPower: Int32Array;
 
 	/**
 	 * Creates the neural quantifier instance.
 	 * @param pixels Array of pixels in RGB format, as such that it's decoded as `[r, g, b, r, g, b, r, g, b, ...]`.
-	 * @param sampleFactorial Sampling factor from 1 to 30, where lower is better quality.
+	 * @param sampleFactorial Sampling factor from `1` to `30`, where lower is better quality.
 	 */
 	public constructor(pixels: Uint8Array, sampleFactorial: number) {
 		this.pixels = pixels;
 		this.sampleFactorial = sampleFactorial;
 		this.networks = [];
-		this.networkIndex = new Int32Array(256);
+		this.networkIndexes = new Int32Array(256);
 		this.biases = new Int32Array(maximumColorsSize);
 		this.frequencies = new Int32Array(maximumColorsSize);
 		this.radiusPower = new Int32Array(maximumColorsSize >> 3);
@@ -94,27 +110,25 @@ export class NeuQuant {
 		this.buildIndexes();
 	}
 
-	/*
-    Method: getColormap
-    builds colormap from the index
-    returns array in the format:
-    >
-    > [r, g, b, r, g, b, r, g, b, ..]
-    >
-  */
+	/**
+	 * Builds the networks' color map.
+	 * @returns A RGB-encoded {@link Float64Array}.
+	 */
 	public getColorMap() {
 		const map = new Float64Array(maximumColorsSize);
 		const index = new Float64Array(maximumColorsSize);
 
-		for (let i = 0; i < maximumColorsSize; i++) index[this.networks[i][3]] = i;
+		for (let i = 0; i < maximumColorsSize; i++) {
+			index[this.networks[i][3]] = i;
+		}
 
-		let k = 0;
-		for (let l = 0; l < maximumColorsSize; l++) {
+		for (let l = 0, k = 0; l < maximumColorsSize; l++) {
 			const network = this.networks[index[l]];
 			map[k++] = network[0];
 			map[k++] = network[1];
 			map[k++] = network[2];
 		}
+
 		return map;
 	}
 
@@ -130,7 +144,7 @@ export class NeuQuant {
 		let bestDistance = 1000;
 		let best = -1;
 
-		const index = this.networkIndex[g];
+		const index = this.networkIndexes[g];
 
 		// Index on `g`
 		for (let i = index; i < maximumColorsSize; ++i) {
@@ -309,58 +323,57 @@ export class NeuQuant {
 		return bestBiasPosition;
 	}
 
-	/*
-Private Method: inxbuild
-sorts network and builds netindex[0..255]
-*/
+	/**
+	 * Sorts the neural network and builds {@link NeuQuant.networkIndexes `networkIndex[0..255]`}.
+	 */
 	private buildIndexes() {
-		let j: number;
-		let p: Float64Array;
-		let q: Float64Array;
-		let smallpos: number;
-		let smallval: number;
-		let previouscol = 0;
-		let startpos = 0;
+		let previousColor = 0;
+		let startPosition = 0;
 		for (let i = 0; i < maximumColorsSize; i++) {
-			p = this.networks[i];
-			smallpos = i;
-			[, smallval] = p; // index on g
-			// find smallest in i..netsize-1
-			for (j = i + 1; j < maximumColorsSize; j++) {
-				q = this.networks[j];
-				if (q[1] < smallval) {
-					// index on g
-					smallpos = j;
-					[, smallval] = q; // index on g
+			const network = this.networks[i];
+			let smallestPosition = i;
+			let smallestValue = network[1]; // index on g
+
+			// Find smallest in [i .. maximumColorsSize - 1]
+			for (let j = i + 1; j < maximumColorsSize; j++) {
+				const q = this.networks[j];
+				if (q[1] < smallestValue) {
+					smallestPosition = j;
+					smallestValue = q[1]; // index on g
 				}
 			}
-			q = this.networks[smallpos];
-			// swap p (i) and q (smallpos) entries
-			if (i !== smallpos) {
-				[q[0], p[0]] = [p[0], q[0]];
-				[q[1], p[1]] = [p[1], q[1]];
-				[q[2], p[2]] = [p[2], q[2]];
-				[q[3], p[3]] = [p[3], q[3]];
-			}
-			// smallval entry is now in position i
 
-			if (smallval !== previouscol) {
-				this.networkIndex[previouscol] = (startpos + i) >> 1;
-				for (j = previouscol + 1; j < smallval; j++) this.networkIndex[j] = i;
-				previouscol = smallval;
-				startpos = i;
+			// Swap network (i) and q (smallestPosition) entries:
+			if (i !== smallestPosition) {
+				const q = this.networks[smallestPosition];
+				[q[0], network[0]] = [network[0], q[0]];
+				[q[1], network[1]] = [network[1], q[1]];
+				[q[2], network[2]] = [network[2], q[2]];
+				[q[3], network[3]] = [network[3], q[3]];
+			}
+
+			// smallestValue entry is now in position i
+			if (smallestValue !== previousColor) {
+				this.networkIndexes[previousColor] = (startPosition + i) >> 1;
+				for (let j = previousColor + 1; j < smallestValue; j++) {
+					this.networkIndexes[j] = i;
+				}
+
+				previousColor = smallestValue;
+				startPosition = i;
 			}
 		}
-		this.networkIndex[previouscol] = (startpos + maximumColorsPosition) >> 1;
-		for (j = previouscol + 1; j < 256; j++) this.networkIndex[j] = maximumColorsPosition; // really 256
+
+		this.networkIndexes[previousColor] = (startPosition + maximumColorsPosition) >> 1;
+		for (let j = previousColor + 1; j < 256; j++) {
+			this.networkIndexes[j] = maximumColorsPosition;
+		}
 	}
 
 	/**
 	 * Runs the main learning loop.
 	 */
 	private learn() {
-		let i;
-
 		const length = this.pixels.length;
 		const alphaDecrement = 30 + (this.sampleFactorial - 1) / 3;
 		const samplePixels = length / (3 * this.sampleFactorial);
@@ -368,10 +381,12 @@ sorts network and builds netindex[0..255]
 		let alpha = initialAlpha;
 		let radius = initialRadius;
 
-		let rad = radius >> initialRadiusBiasShift;
+		let localRadius = radius >> initialRadiusBiasShift;
+		if (localRadius <= 1) localRadius = 0;
 
-		if (rad <= 1) rad = 0;
-		for (i = 0; i < rad; i++) this.radiusPower[i] = alpha * (((rad * rad - i * i) * radiusBias) / (rad * rad));
+		for (let i = 0; i < localRadius; i++) {
+			this.radiusPower[i] = alpha * (((localRadius * localRadius - i * i) * radiusBias) / (localRadius * localRadius));
+		}
 
 		let step;
 		if (length < minimumPictureBytes) {
@@ -387,9 +402,8 @@ sorts network and builds netindex[0..255]
 			step = 3 * prime4;
 		}
 
-		let pixelPosition = 0; // current pixel
-
-		i = 0;
+		let pixelPosition = 0;
+		let i = 0;
 		while (i < samplePixels) {
 			const b = (this.pixels[pixelPosition] & 0xff) << networkBiasShift;
 			const g = (this.pixels[pixelPosition + 1] & 0xff) << networkBiasShift;
@@ -398,21 +412,22 @@ sorts network and builds netindex[0..255]
 			let j = this.contest(b, g, r);
 
 			this.alterSingle(alpha, j, b, g, r);
-			if (rad !== 0) this.alterNeighbors(rad, j, b, g, r); // alter neighbors
+			if (localRadius !== 0) this.alterNeighbors(localRadius, j, b, g, r);
 
 			pixelPosition += step;
 			if (pixelPosition >= length) pixelPosition -= length;
-
-			i++;
-
 			if (delta === 0) delta = 1;
+
+			++i;
 			if (i % delta === 0) {
 				alpha -= alpha / alphaDecrement;
 				radius -= radius / initialRadiusDecrement;
-				rad = radius >> initialRadiusBiasShift;
+				localRadius = radius >> initialRadiusBiasShift;
 
-				if (rad <= 1) rad = 0;
-				for (j = 0; j < rad; j++) this.radiusPower[j] = alpha * (((rad * rad - j * j) * radiusBias) / (rad * rad));
+				if (localRadius <= 1) localRadius = 0;
+				for (j = 0; j < localRadius; j++) {
+					this.radiusPower[j] = alpha * (((localRadius * localRadius - j * j) * radiusBias) / (localRadius * localRadius));
+				}
 			}
 		}
 	}

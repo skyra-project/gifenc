@@ -388,6 +388,8 @@ export class GifEncoder {
 			for (const stream of this.readableStreams) {
 				stream.push(data);
 			}
+
+			this.byteBuffer.reset();
 		}
 	}
 

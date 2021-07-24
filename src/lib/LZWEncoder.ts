@@ -209,7 +209,7 @@ export class LZWEncoder {
 	private flushPacket(output: ByteBuffer) {
 		if (this.accumulator > 0) {
 			output.writeByte(this.accumulator);
-			output.fill(0, 0, this.accumulator);
+			output.writeBytes(this.accumulators, 0, this.accumulator);
 			this.accumulator = 0;
 		}
 	}

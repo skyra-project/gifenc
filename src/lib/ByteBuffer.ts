@@ -51,12 +51,10 @@ export class ByteBuffer {
 	 * Writes `bytes` into the data.
 	 * @param bytes The bytes to write.
 	 */
-	public writeBytes(bytes: ArrayLike<number>) {
-		this.ensureBytes(bytes.length);
+	public writeBytes(bytes: ArrayLike<number>, start = 0, end = bytes.length): void {
+		this.ensureBytes(end - start);
 
-		// ArrayLike<T> does not define `Symbol.iterator`:
-		// eslint-disable-next-line @typescript-eslint/prefer-for-of
-		for (let i = 0; i < bytes.length; i++) {
+		for (let i = start; i < end; i++) {
 			this.data[this.written++] = bytes[i];
 		}
 	}

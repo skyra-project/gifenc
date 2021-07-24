@@ -1,3 +1,14 @@
+/**
+ * GifEncoder
+ *
+ * Authors
+ * - Kevin Weiner (original Java version - kweiner@fmsware.com)
+ * - Thibault Imbert (AS3 version - bytearray.org)
+ * - Johan Nordberg (JS version - code@johan-nordberg.com)
+ * - Eugene Ware (node.js streaming version - eugene@noblesmaurai.com)
+ * - Antonio Román (TS version - kyradiscord@gmail.com)
+ */
+
 import { Duplex, Readable } from 'stream';
 import { types } from 'util';
 import { ByteBuffer } from './ByteBuffer';
@@ -381,16 +392,14 @@ export class GifEncoder {
 	}
 
 	private emit() {
-		if (this.readableStreams.length === 0) return;
+		if (this.readableStreams.length === 0 || this.byteBuffer.length === 0) return;
 
-		if (this.byteBuffer.length) {
-			const data = this.byteBuffer.toArray();
-			for (const stream of this.readableStreams) {
-				stream.push(data);
-			}
-
-			this.byteBuffer.reset();
+		const data = this.byteBuffer.toArray();
+		for (const stream of this.readableStreams) {
+			stream.push(Buffer.from(data));
 		}
+
+		this.byteBuffer.reset();
 	}
 
 	/**

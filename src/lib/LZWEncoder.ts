@@ -236,8 +236,8 @@ export class LZWEncoder {
 		if (this.remaining === 0) return EOF;
 
 		--this.remaining;
-		const pix = this.pixels[this.currentPixel++];
-		return pix & 0xff;
+		const pixel = this.pixels[this.currentPixel++];
+		return pixel & 0xff;
 	}
 
 	private processOutput(code: number, outs: ByteBuffer) {

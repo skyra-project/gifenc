@@ -88,7 +88,7 @@ export class NeuQuant {
 	// bias and freq arrays for learning
 	private biases: Int32Array;
 	private frequencies: Int32Array;
-	private radiusPower: Int32Array;
+	private radiusPowers: Int32Array;
 
 	/**
 	 * Creates the neural quantifier instance.
@@ -102,7 +102,7 @@ export class NeuQuant {
 		this.networkIndexes = new Int32Array(256);
 		this.biases = new Int32Array(maximumColorsSize);
 		this.frequencies = new Int32Array(maximumColorsSize);
-		this.radiusPower = new Int32Array(maximumColorsSize >> 3);
+		this.radiusPowers = new Int32Array(maximumColorsSize >> 3);
 
 		this.init();
 		this.learn();
@@ -115,7 +115,7 @@ export class NeuQuant {
 	 * @returns A RGB-encoded {@link Float64Array}.
 	 */
 	public getColorMap() {
-		const map = new Float64Array(maximumColorsSize);
+		const map = new Float64Array(maximumColorsSize * 3);
 		const index = new Float64Array(maximumColorsSize);
 
 		for (let i = 0; i < maximumColorsSize; i++) {
@@ -237,7 +237,7 @@ export class NeuQuant {
 
 	/**
 	 * Moves neurons in a `radius` around index `i` towards biased (`B`, `G`, `R`) by factor
-	 * {@link NeuQuant.radiusPower `radiusPower[m]`}.
+	 * {@link NeuQuant.radiusPowers `radiusPower[m]`}.
 	 * @param radius The radius around `i` to alter.
 	 * @param i The neuron's index.
 	 * @param b The blue color.
@@ -253,7 +253,7 @@ export class NeuQuant {
 		let m = 1;
 
 		while (j < hi || k > lo) {
-			const alpha = this.radiusPower[m++];
+			const alpha = this.radiusPowers[m++];
 
 			if (j < hi) {
 				const network = this.networks[j++];
@@ -385,7 +385,7 @@ export class NeuQuant {
 		if (localRadius <= 1) localRadius = 0;
 
 		for (let i = 0; i < localRadius; i++) {
-			this.radiusPower[i] = alpha * (((localRadius * localRadius - i * i) * radiusBias) / (localRadius * localRadius));
+			this.radiusPowers[i] = alpha * (((localRadius * localRadius - i * i) * radiusBias) / (localRadius * localRadius));
 		}
 
 		let step;
@@ -419,15 +419,15 @@ export class NeuQuant {
 			if (delta === 0) delta = 1;
 
 			++i;
-			if (i % delta === 0) {
-				alpha -= alpha / alphaDecrement;
-				radius -= radius / initialRadiusDecrement;
-				localRadius = radius >> initialRadiusBiasShift;
+			if (i % delta !== 0) continue;
 
-				if (localRadius <= 1) localRadius = 0;
-				for (j = 0; j < localRadius; j++) {
-					this.radiusPower[j] = alpha * (((localRadius * localRadius - j * j) * radiusBias) / (localRadius * localRadius));
-				}
+			alpha -= alpha / alphaDecrement;
+			radius -= radius / initialRadiusDecrement;
+			localRadius = radius >> initialRadiusBiasShift;
+
+			if (localRadius <= 1) localRadius = 0;
+			for (j = 0; j < localRadius; j++) {
+				this.radiusPowers[j] = alpha * (((localRadius * localRadius - j * j) * radiusBias) / (localRadius * localRadius));
 			}
 		}
 	}

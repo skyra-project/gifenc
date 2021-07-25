@@ -18,6 +18,7 @@ export default {
 			sourcemap: true
 		}
 	],
+	external: ['stream', 'util'],
 	plugins: [
 		cleaner({
 			targets: ['./dist/']

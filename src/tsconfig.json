@@ -1,11 +1,9 @@
 {
 	"extends": "../tsconfig.base.json",
 	"compilerOptions": {
-		"lib": ["dom"],
 		"rootDir": "./",
 		"outDir": "../dist",
-		"composite": true,
-		"useDefineForClassFields": false
+		"composite": true
 	},
 	"include": ["."]
 }

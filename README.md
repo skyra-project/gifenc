@@ -1,69 +1,51 @@
+<div align="center">
+
 # @skyra/gifenc
 
-[![GitHub](https://img.shields.io/github/license/skyra-project/gifenc)](https://github.com/skyra-project/gifenc/blob/main/LICENSE.md)
-[![codecov](https://codecov.io/gh/skyra-project/gifenc/branch/main/graph/badge.svg?token=DA10PXDZ06)](https://codecov.io/gh/skyra-project/gifenc)
-[![Depfu](https://badges.depfu.com/badges/e367f2c68b857253ca23e1e8d73d1e14/count.svg)](https://depfu.com/github/skyra-project/gifenc?project_id=14147)
+**A very fast server-side animated GIF generation for Node.js**
 
-[![npm](https://img.shields.io/npm/v/@skyra/gifenc?color=crimson&label=NPM&logo=npm&style=flat-square)](https://www.npmjs.com/package/@skyra/gifenc)
+[![GitHub](https://img.shields.io/github/license/skyra-project/gifenc)](https://github.com/skyra-project/gifenc/blob/main/LICENSE.md)
+[![Depfu](https://badges.depfu.com/badges/5ace3cfc9a2b77055e3c52c1e09d9d6c/count.svg)](https://depfu.com/github/skyra-project/gifenc?project_id=29793)
+
+[![npm](https://img.shields.io/npm/v/@skyra/gifenc?color=crimson&label=NPM&logo=npm)](https://www.npmjs.com/package/@skyra/gifenc)
 ![npm bundle size minified (scoped)](https://img.shields.io/bundlephobia/min/@skyra/gifenc?label=minified&logo=webpack)
 ![npm bundle size minzipped (scoped)](https://img.shields.io/bundlephobia/minzip/@skyra/gifenc?label=minified&logo=webpack)
 
-**Table of Contents**
+[![Support Server](https://discord.com/api/guilds/254360814063058944/embed.png?style=banner2)](https://join.skyra.pw)
 
--   [@skyra/gifenc](#skyragifenc)
-    -   [About](#about)
-    -   [Installation and Usage](#installation-and-usage)
-        -   [Package managers](#package-managers)
-            -   [Usage](#usage)
-        -   [Browser build](#browser-build)
-            -   [Usage](#usage-1)
-    -   [Meta](#meta)
-        -   [License](#license)
-        -   [Contributing](#contributing)
-        -   [Buy us some doughnuts](#buy-us-some-doughnuts)
-        -   [Contributors ✨](#contributors-%E2%9C%A8)
+</div>
 
-## About
+---
+
+## Features
 
 -   @skyra/gifenc is a GIF encoding utility library to build your next GIFs.
 -   Supports CommonJS and ES Module.
 -   Heavily based on [`gifencoder`](https://github.com/eugeneware/gifencoder), this module wouldn't have existed without its author.
 
-## Installation and Usage
+## Installation
 
-### Package managers
+You can use the following command to install this package, or replace `npm install` with your package manager of choice.
 
-```bash
-yarn add @skyra/gifenc
-# or npm install @skyra/gifenc
+```sh
+npm install @skyra/gifenc
 ```
 
-#### Usage
+## Usage
+
+**For CommonJS**:
 
 ```js
 const { GifEncoder } = require('@skyra/gifenc');
 ```
 
+**For ESM**:
+
 ```ts
 import { GifEncoder } from '@skyra/gifenc';
 ```
 
-## Meta
-
-### License
-
-Copyright © 2021, [Skyra Project](https://github.com/skyra-project).
-Released under the [MIT License](LICENSE.md).
-
-### Contributing
-
-1. Fork it!
-1. Create your feature branch: `git checkout -b my-new-feature`
-1. Commit your changes: `git commit -am 'Add some feature'`
-1. Push to the branch: `git push origin my-new-feature`
-1. Submit a pull request!
-
-### Buy us some doughnuts
+## Buy us some doughnuts
 
 Skyra Project is open source and always will be, even if we don't get donations. That said, we know there are amazing people who
 may still want to donate just to show their appreciation. Thanks you very much in advance!
@@ -78,15 +60,7 @@ We accept donations through Patreon, BitCoin, Ethereum, and Litecoin. You can us
 |  Ethereum   | ![EthereumImage][] | [0xcB5EDB76Bc9E389514F905D9680589004C00190c](ethereum:0xcB5EDB76Bc9E389514F905D9680589004C00190c?amount=0.01&label=Skyra%20Discord%20Bot) |
 |  Litecoin   | ![LitecoinImage][] |         [MNVT1keYGMfGp7vWmcYjCS8ntU8LNvjnqM](litecoin:MNVT1keYGMfGp7vWmcYjCS8ntU8LNvjnqM?amount=0.01&label=Skyra%20Discord%20Bot)         |
 
-[.net]: https://github.com/dotnet
-[discord c# community]: https://discord.gg/csharp
-[patreonimage]: https://cdn.skyra.pw/gh-assets/patreon.png
-[paypalimage]: https://cdn.skyra.pw/gh-assets/paypal.png
-[bitcoinimage]: https://cdn.skyra.pw/gh-assets/bitcoin.png
-[ethereumimage]: https://cdn.skyra.pw/gh-assets/ethereum.png
-[litecoinimage]: https://cdn.skyra.pw/gh-assets/litecoin.png
-
-### Contributors ✨
+## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
@@ -96,12 +70,21 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://github.com/kyranet"><img src="https://avatars0.githubusercontent.com/u/24852502?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Antonio Román</b></sub></a><br /><a href="https://github.com/skyra-project/gifenc/commits?author=kyranet" title="Code">💻</a> <a href="#ideas-kyranet" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-kyranet" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    <td align="center"><a href="https://favware.tech/"><img src="https://avatars.githubusercontent.com/u/4019718?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jeroen Claassens</b></sub></a><br /><a href="#infra-Favna" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-Favna" title="Maintenance">🚧</a></td>
   </tr>
 </table>
 
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+<!-- LINK DUMP -->
+
+[patreonimage]: https://cdn.skyra.pw/gh-assets/patreon.png
+[paypalimage]: https://cdn.skyra.pw/gh-assets/paypal.png
+[bitcoinimage]: https://cdn.skyra.pw/gh-assets/bitcoin.png
+[ethereumimage]: https://cdn.skyra.pw/gh-assets/ethereum.png
+[litecoinimage]: https://cdn.skyra.pw/gh-assets/litecoin.png

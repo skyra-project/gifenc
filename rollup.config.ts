@@ -16,12 +16,6 @@ export default {
 			format: 'es',
 			exports: 'named',
 			sourcemap: true
-		},
-		{
-			file: './dist/index.umd.js',
-			format: 'umd',
-			name: 'SkyraGif',
-			sourcemap: true
 		}
 	],
 	plugins: [

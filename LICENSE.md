@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 
-Copyright © `2021` `Antonio Román`
+Copyright © `2021` `Skyra Project`
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

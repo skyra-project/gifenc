@@ -33,7 +33,7 @@
 		"prepare": "husky install .github/husky"
 	},
 	"dependencies": {
-		"tslib": "^2.3.0"
+		"tslib": "^2.3.1"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^13.1.0",
@@ -42,8 +42,8 @@
 		"@sapphire/prettier-config": "^1.1.6",
 		"@sapphire/ts-config": "^3.0.0",
 		"@types/jest": "^27.0.1",
-		"@types/node": "^16.6.1",
-		"@typescript-eslint/eslint-plugin": "^4.29.1",
+		"@types/node": "^16.6.2",
+		"@typescript-eslint/eslint-plugin": "^4.29.2",
 		"@typescript-eslint/parser": "^4.28.5",
 		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^7.32.0",

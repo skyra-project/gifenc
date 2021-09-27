@@ -5,7 +5,6 @@
 **A very fast server-side animated GIF generation for Node.js**
 
 [![GitHub](https://img.shields.io/github/license/skyra-project/gifenc)](https://github.com/skyra-project/gifenc/blob/main/LICENSE.md)
-[![Depfu](https://badges.depfu.com/badges/a11beec97bfc50a6edba401fecd91513/count.svg)](https://depfu.com/github/skyra-project/gifenc?project_id=29827)
 
 [![npm](https://img.shields.io/npm/v/@skyra/gifenc?color=crimson&label=NPM&logo=npm)](https://www.npmjs.com/package/@skyra/gifenc)
 ![npm bundle size minified (scoped)](https://img.shields.io/bundlephobia/min/@skyra/gifenc?label=minified&logo=webpack)

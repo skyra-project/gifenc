@@ -63,7 +63,7 @@
 		"url": "git+https://github.com/skyra-project/gifenc.git"
 	},
 	"engines": {
-		"node": ">=14",
+		"node": ">=v14.18.0",
 		"npm": ">=6"
 	},
 	"keywords": [

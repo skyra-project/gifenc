@@ -32,9 +32,9 @@ npm install @skyra/gifenc
 
 ## Usage
 
-> `@skyra/gifenc` works nearly as a drop-in replacement for [`gifencoder`](https://www.npmjs.com/package/gifencoder), the only difference is that the encoder class is named `GifEncoder` and not `GIFEncoder`, and that the metadata methods are chainable.
+> `@skyra/gifenc` is very close to a drop-in replacement for [`gifencoder`](https://www.npmjs.com/package/gifencoder). There are only 2 differences to account for. First of all, the encoder class is named `GifEncoder` and not `GIFEncoder`, and secondly, the metadata methods are chainable.
 
-### Streaming API - Write into file
+### Streaming API - Writing to a file
 
 ```js
 const { GifEncoder } = require('@skyra/gifenc');

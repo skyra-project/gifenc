@@ -32,13 +32,83 @@ npm install @skyra/gifenc
 
 ## Usage
 
-**For CommonJS**:
+> `@skyra/gifenc` works nearly as a drop-in replacement for [`gifencoder`](https://www.npmjs.com/package/gifencoder), the only difference is that the encoder class is named `GifEncoder` and not `GIFEncoder`, and that the metadata methods are chainable.
+
+### Streaming API - Write into file
 
 ```js
 const { GifEncoder } = require('@skyra/gifenc');
+const { createWriteStream } = require('node:fs');
+
+const encoder = new GifEncoder(400, 400);
+	// Set the repeat mode: 0 for repeat, -1 for no-repeat:
+	.setRepeat(0)
+	// Set the frame delay in milliseconds:
+	.setDelay(500)
+	// Set the image quality, 10 is default:
+	.setQuality(10);
+
+// Create a read stream and pipe it into a file write stream:
+encoder.createReadStream()
+	.pipe(createWriteStream('my-file.gif'));
+
+encoder.start();
+
+// `getFrames` enumerates over frames
+for (const frame of getFrames()) {
+	encoder.addFrame(frame);
+}
+
+encoder.finish();
 ```
 
-**For ESM**:
+### Streaming API - Get resulting Buffer
+
+We can use [`streamConsumers.buffer()`](https://nodejs.org/dist/latest-v16.x/docs/api/webstreams.html#streamconsumersbufferstream) from Node.js to convert the stream into a buffer starting with Node.js v16.7.0, if you're using an older version, consider making a function using stream's async iterator (Node.js v10+) or use a package.
+
+```js
+const { GifEncoder } = require('@skyra/gifenc');
+const { buffer } = require('node:stream/consumers');
+
+const encoder = new GifEncoder(400, 400);
+
+const stream = encoder.createReadStream();
+encoder.setRepeat(0).setDelay(500).setQuality(10).start();
+
+// `getFrames` enumerates over frames
+for (const frame of getFrames()) {
+	encoder.addFrame(frame);
+}
+
+encoder.finish();
+const result = await buffer(stream);
+```
+
+### Using with canvas-constructor
+
+```js
+const { GifEncoder } = require('@skyra/gifenc');
+const { Canvas } = require('canvas-constructor/skia');
+// const { Canvas } = require('canvas-constructor/cairo');
+
+const canvas = new Canvas(400, 400);
+const encoder = new GifEncoder(400, 400);
+
+const stream = encoder.createReadStream();
+encoder.setRepeat(0).setDelay(500).setQuality(10).start();
+
+const colors = ['#98DDCA', '#D5ECC2', '#FFD3B4', '#FFAAA7'];
+for (const color of colors) {
+	canvas.setColor(color).printRectangle(0, 0, 400, 400);
+	encoder.addFrame(canvas);
+}
+
+// ...
+```
+
+### Using with ECMAScript Modules
+
+`@skyra/gifenc` supports ESM out of the box. To import the `GifEncoder` class, you use the following statement:
 
 ```ts
 import { GifEncoder } from '@skyra/gifenc';

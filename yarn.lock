@@ -239,33 +239,33 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@sapphire/eslint-config@^4.0.5":
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/@sapphire/eslint-config/-/eslint-config-4.0.5.tgz#b0cafb4819240f791624695e31a40871615a0670"
-  integrity sha512-v5Y4MQApr6FgUkgSAWBVUbsy4mntiq0SMSp3q67raoWQGbcS2ZwqFgJd0tGurcc0+6xaVqiS8izwUgLUlDiRuA==
+"@sapphire/eslint-config@^4.0.7":
+  version "4.0.7"
+  resolved "https://registry.yarnpkg.com/@sapphire/eslint-config/-/eslint-config-4.0.7.tgz#f1daecbb9125f95ec3d34fd6dae01a3b2f81af2e"
+  integrity sha512-rP6T7rHNLsDQ3wcY6e5OHm/36TpAXUgb6LRyDo7VsZCvj4cM1ys08XOf335famVE0XCaYYbJkzHszBSTD87Irw==
   dependencies:
-    "@typescript-eslint/eslint-plugin" "^5.3.1"
-    "@typescript-eslint/parser" "^5.3.1"
-    eslint "^8.2.0"
+    "@typescript-eslint/eslint-plugin" "^5.4.0"
+    "@typescript-eslint/parser" "^5.4.0"
+    eslint "^8.3.0"
     eslint-config-prettier "^8.3.0"
     eslint-plugin-prettier "^4.0.0"
-    prettier "^2.4.1"
-    typescript "^4.4.4"
+    prettier "^2.5.0"
+    typescript "^4.5.2"
 
-"@sapphire/prettier-config@^1.2.4":
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@sapphire/prettier-config/-/prettier-config-1.2.4.tgz#835c0d945d1d031cb999b034cf187f4c8972fba1"
-  integrity sha512-mH+2aQATewSlPl2NyRwFULTZIOOq9ilBSQ7uS7xlzVSKlGzCLzbGG8L3G+hDQ18xxN5oJdmkQmAOAunPd6J6gg==
+"@sapphire/prettier-config@^1.2.6":
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/@sapphire/prettier-config/-/prettier-config-1.2.6.tgz#68dc7201bb31a8c274b0a9d48e754c4c237ef650"
+  integrity sha512-1+eRppdbmPWh1SqcHviCfqwQsZa1mxWltn3qfSyvy+TUfyF+0/5PEtNwn9qwh0hdQzz5N/feG45bdrqmbrdMww==
   dependencies:
-    prettier "^2.4.1"
+    prettier "^2.5.0"
 
-"@sapphire/ts-config@^3.1.4":
-  version "3.1.4"
-  resolved "https://registry.yarnpkg.com/@sapphire/ts-config/-/ts-config-3.1.4.tgz#36845b6a6cd1621bd0fcde0cee6273773c497939"
-  integrity sha512-WeQc7mhCzbu1sqnErhOVSgWFHTc2daybOjuSef/WtTXlPq1F6qn9y5hAYbNKD2ySQDe8GJJYwdWUZPTYv6fkBA==
+"@sapphire/ts-config@^3.1.6":
+  version "3.1.6"
+  resolved "https://registry.yarnpkg.com/@sapphire/ts-config/-/ts-config-3.1.6.tgz#9cd371f5eb17efaaf48fbf30abf7e7bd8b64c478"
+  integrity sha512-I41AqJLRXcJDW3tqFs7l93iOaJZ3Y0RgAZoawoanS+NfGPMZO04r03cDNEyTILxmtU8zcouyKpdzg+qiCP/5Dg==
   dependencies:
     tslib "^2.3.1"
-    typescript "^4.4.4"
+    typescript "^4.5.2"
 
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0":
   version "2.0.3"
@@ -336,7 +336,7 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@typescript-eslint/eslint-plugin@^5.3.1", "@typescript-eslint/eslint-plugin@^5.4.0":
+"@typescript-eslint/eslint-plugin@^5.4.0":
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-5.4.0.tgz#05e711a2e7b68342661fde61bccbd1531c19521a"
   integrity sha512-9/yPSBlwzsetCsGEn9j24D8vGQgJkOTr4oMLas/w886ZtzKIs1iyoqFrwsX2fqYEeUwsdBpC21gcjRGo57u0eg==
@@ -362,7 +362,7 @@
     eslint-scope "^5.1.1"
     eslint-utils "^3.0.0"
 
-"@typescript-eslint/parser@^5.3.1", "@typescript-eslint/parser@^5.4.0":
+"@typescript-eslint/parser@^5.4.0":
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-5.4.0.tgz#3aa83ce349d66e39b84151f6d5464928044ca9e3"
   integrity sha512-JoB41EmxiYpaEsRwpZEYAJ9XQURPFer8hpkIW9GiaspVLX8oqbqNM8P4EP8HOZg96yaALiLEVWllA2E8vwsIKw==
@@ -1182,7 +1182,7 @@ eslint-visitor-keys@^3.0.0, eslint-visitor-keys@^3.1.0:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-3.1.0.tgz#eee4acea891814cda67a7d8812d9647dd0179af2"
   integrity sha512-yWJFpu4DtjsWKkt5GeNBBuZMlNcYVs6vRCLoCVEJrTjaSB6LC98gFipNK/erM2Heg/E8mIK+hXG/pJMLK+eRZA==
 
-eslint@^8.2.0, eslint@^8.3.0:
+eslint@^8.3.0:
   version "8.3.0"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.3.0.tgz#a3c2409507403c1c7f6c42926111d6cbefbc3e85"
   integrity sha512-aIay56Ph6RxOTC7xyr59Kt3ewX185SaGnAr8eWukoPLeriCrvGjvAubxuvaXOfsxhtwV5g0uBOsyhAom4qJdww==
@@ -2499,6 +2499,11 @@ prettier@^2.4.1:
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.4.1.tgz#671e11c89c14a4cfc876ce564106c4a6726c9f5c"
   integrity sha512-9fbDAXSBcc6Bs1mZrDYb3XKzDLm4EXXL9sC1LqKP5rZkT6KRr/rf9amVUcODVXgguK/isJz0d0hP72WeaKWsvA==
 
+prettier@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.5.0.tgz#a6370e2d4594e093270419d9cc47f7670488f893"
+  integrity sha512-FM/zAKgWTxj40rH03VxzIPdXmj39SwSjwG0heUcNFwI+EMZJnY93yAiKXM3dObIKAM5TA88werc8T/EwhB45eg==
+
 pretty-format@^27.0.0, pretty-format@^27.3.1:
   version "27.3.1"
   resolved "https://registry.yarnpkg.com/pretty-format/-/pretty-format-27.3.1.tgz#7e9486365ccdd4a502061fa761d3ab9ca1b78df5"
@@ -3150,7 +3155,7 @@ typedoc@^0.22.9:
     minimatch "^3.0.4"
     shiki "^0.9.12"
 
-typescript@^4.4.3, typescript@^4.4.4, typescript@^4.5.2:
+typescript@^4.4.3, typescript@^4.5.2:
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.2.tgz#8ac1fba9f52256fdb06fb89e4122fa6a346c2998"
   integrity sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==

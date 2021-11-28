@@ -335,7 +335,7 @@ export class GifEncoder {
 	 * received so that timing data can be inserted. Calling {@link GifEncoder.finish} will flush all frames.
 	 * @param imageData The image data to add into the next frame.
 	 */
-	public addFrame(imageData: ResolvableImage | Uint8ClampedArray) {
+	public addFrame(imageData: Pick<CanvasRenderingContext2D, 'getImageData'> | Uint8ClampedArray) {
 		if (types.isUint8ClampedArray(imageData)) {
 			this.image = imageData;
 		} else {
@@ -609,8 +609,4 @@ export class GifEncoder {
 		const enc = new LZWEncoder(this.width, this.height, this.indexedPixels!, this.colorDepth!);
 		enc.encode(this.byteBuffer);
 	}
-}
-
-export interface ResolvableImage {
-	getImageData(sx: number, sy: number, sw: number, sh: number): ImageData;
 }

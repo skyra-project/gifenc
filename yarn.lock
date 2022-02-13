@@ -297,10 +297,10 @@
   dependencies:
     prettier "^2.5.1"
 
-"@sapphire/ts-config@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@sapphire/ts-config/-/ts-config-3.3.0.tgz#00cc37a0c2260fb9b4ec98a4a458012444f6c954"
-  integrity sha512-7V2GJjGH6/ebwaCgTVMrff/Awq7Va/0Z0Si1MAroIDZ5L6vhKwuWc5Uozt7WzQfVE8BtFjrJMMHisT2MD5UoKw==
+"@sapphire/ts-config@^3.3.1":
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@sapphire/ts-config/-/ts-config-3.3.1.tgz#fa96b10c010f7819c925f5bfef1caa59d0176be3"
+  integrity sha512-HDqLiVYGuJdSlkL7UiJ+kwNuZUkD0hnZV7Zdhc2fngSSDmusnZ0W1Lyw9HWRVsIr3/9d1Pql4mK5vgpiCMFi9g==
   dependencies:
     tslib "^2.3.1"
     typescript "^4.5.5"

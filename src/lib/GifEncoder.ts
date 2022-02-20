@@ -252,6 +252,7 @@ export class GifEncoder {
 		};
 
 		const end = duplex.end.bind(duplex);
+		// @ts-expect-error This is a Node 17 issue and it should not break using the library
 		duplex.end = (...args: readonly any[]) => {
 			end(...args);
 			this.finish();

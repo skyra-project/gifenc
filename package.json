@@ -13,22 +13,18 @@
 	},
 	"sideEffects": false,
 	"homepage": "https://skyra-project.github.io/gifenc",
-	"private": false,
 	"files": [
 		"dist"
 	],
 	"scripts": {
 		"lint": "eslint src --ext ts --fix",
-		"format": "prettier --write {src}/**/*.ts",
+		"format": "prettier --write \"{src}/**/*.ts\"",
 		"docs": "typedoc",
-		"update": "yarn upgrade-interactive --latest",
-		"build": "tsc -b src",
-		"postbuild": "gen-esm-wrapper dist/index.js dist/index.mjs",
+		"update": "yarn up \"@*/*\" -i && yarn up \"*\" -i",
+		"build": "tsc -b src && gen-esm-wrapper dist/index.js dist/index.mjs",
 		"watch": "yarn build -w",
 		"clean": "node scripts/clean-dist.mjs",
 		"sversion": "standard-version",
-		"commit": "git-cz",
-		"cz": "git-cz",
 		"prepublishOnly": "yarn clean && yarn build",
 		"prepare": "husky install .github/husky"
 	},
@@ -94,11 +90,9 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"resolutions": {
-		"acorn": "^8.7.0"
-	},
 	"eslintConfig": {
 		"extends": "@sapphire"
 	},
-	"prettier": "@sapphire/prettier-config"
+	"prettier": "@sapphire/prettier-config",
+	"packageManager": "yarn@3.2.0"
 }

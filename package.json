@@ -1,6 +1,6 @@
 {
 	"name": "@skyra/gifenc",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "A very fast server-side animated GIF generation for Node.js",
 	"author": "@skyra",
 	"license": "MIT",

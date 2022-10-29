@@ -15,7 +15,8 @@
 	"sideEffects": false,
 	"homepage": "https://skyra-project.github.io/gifenc",
 	"files": [
-		"dist"
+		"dist",
+		"!dist/tsconfig.tsbuildinfo"
 	],
 	"scripts": {
 		"lint": "eslint src --ext ts --fix",

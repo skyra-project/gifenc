@@ -5,7 +5,7 @@
  * - Kevin Weiner (original Java version - kweiner@fmsware.com)
  * - Thibault Imbert (AS3 version - bytearray.org)
  * - Johan Nordberg (JS version - code@johan-nordberg.com)
- * - Antonio Román (TS version - kyradiscord@gmail.com)
+ * - Aura Román (TS version - kyradiscord@gmail.com)
  *
  * Acknowledgements
  * - GIFCOMPR.C - GIF Image compression routines

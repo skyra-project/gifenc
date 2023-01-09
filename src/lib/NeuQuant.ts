@@ -20,7 +20,7 @@
  * that this copyright notice remain intact.
  *
  * (JavaScript port 2012 by Johan Nordberg)
- * (TypeScript port 2021 by Antonio Román)
+ * (TypeScript port 2021 by Aura Román)
  */
 
 /* eslint-disable prefer-destructuring, no-negated-condition */

@@ -6,7 +6,7 @@
  * - Thibault Imbert (AS3 version - bytearray.org)
  * - Johan Nordberg (JS version - code@johan-nordberg.com)
  * - Eugene Ware (node.js streaming version - eugene@noblesmaurai.com)
- * - Antonio Román (TS version - kyradiscord@gmail.com)
+ * - Aura Román (TS version - kyradiscord@gmail.com)
  */
 
 import { Duplex, Readable } from 'stream';

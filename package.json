@@ -38,7 +38,7 @@
 		"@commitlint/config-conventional": "^17.7.0",
 		"@sapphire/eslint-config": "^5.0.1",
 		"@sapphire/prettier-config": "^2.0.0",
-		"@sapphire/ts-config": "^4.0.1",
+		"@sapphire/ts-config": "^5.0.0",
 		"@types/jest": "^29.5.3",
 		"@types/node": "^18.17.6",
 		"@typescript-eslint/eslint-plugin": "^6.4.0",

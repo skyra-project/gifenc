@@ -544,10 +544,10 @@ export class GifEncoder {
 		const fields = this.firstFrame
 			? 0b0000_0000 // The first frame uses the GCT (Global Color Table)
 			: 0b1000_0000 | //     X000_0000 : Local Color Table Flag = 1
-			  0b0000_0000 | //     0X00_0000 : Interlace Flag = 0
-			  0b0000_0000 | //     00X0_0000 : Sort Flag = 0
-			  0b0000_0000 | //     000X_X000 : Reserved
-			  PALETTE_SIZE; // 0000_0XXX : Size of Local Color Table
+				0b0000_0000 | //     0X00_0000 : Interlace Flag = 0
+				0b0000_0000 | //     00X0_0000 : Sort Flag = 0
+				0b0000_0000 | //     000X_X000 : Reserved
+				PALETTE_SIZE; // 0000_0XXX : Size of Local Color Table
 
 		this.byteBuffer.writeByte(fields);
 	}

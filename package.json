@@ -31,7 +31,7 @@
 		"prepack": "yarn clean && yarn build"
 	},
 	"dependencies": {
-		"tslib": "^2.7.0"
+		"tslib": "^2.8.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^19.5.0",
@@ -40,7 +40,7 @@
 		"@sapphire/prettier-config": "^2.0.0",
 		"@sapphire/ts-config": "^5.0.1",
 		"@types/jest": "^29.5.13",
-		"@types/node": "^20.16.11",
+		"@types/node": "^20.16.13",
 		"@typescript-eslint/eslint-plugin": "^7.13.1",
 		"@typescript-eslint/parser": "^7.13.1",
 		"cz-conventional-changelog": "^3.3.0",
@@ -99,5 +99,5 @@
 		"extends": "@sapphire"
 	},
 	"prettier": "@sapphire/prettier-config",
-	"packageManager": "yarn@4.5.0"
+	"packageManager": "yarn@4.5.1"
 }

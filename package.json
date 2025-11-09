@@ -99,5 +99,5 @@
 		"extends": "@sapphire"
 	},
 	"prettier": "@sapphire/prettier-config",
-	"packageManager": "yarn@4.10.3"
+	"packageManager": "yarn@4.11.0"
 }

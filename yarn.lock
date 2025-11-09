@@ -512,16 +512,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 22.18.13
-  resolution: "@types/node@npm:22.18.13"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10/a0e8632a3eeeed3986f3b0b170187f67c0f0bb0d4fbbf9627af5c9bf81e2836bb64aa6f3bdab1c00658cb7911d8c231d7d6db853ae643edcd41f383c86f349e6
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^24.10.0":
+"@types/node@npm:*, @types/node@npm:^24.10.0":
   version: 24.10.0
   resolution: "@types/node@npm:24.10.0"
   dependencies:
@@ -4401,13 +4392,6 @@ __metadata:
   bin:
     uglifyjs: bin/uglifyjs
   checksum: 10/4c0b800e0ff192079d2c3ce8414fd3b656a570028c7c79af5c29c53d5c532b68bbcae4ad47307f89c2ee124d11826fff7a136b59d5c5bb18422bcdf5568afe1e
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~6.21.0":
-  version: 6.21.0
-  resolution: "undici-types@npm:6.21.0"
-  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
   languageName: node
   linkType: hard
 
